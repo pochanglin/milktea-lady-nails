@@ -39,12 +39,6 @@
         input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(0.5);
         }
-
-        .tab-active {
-            border-bottom: 2px solid #8E735B;
-            color: #8E735B;
-            font-weight: bold;
-        }
     </style>
 </head>
 
@@ -60,9 +54,7 @@
         };
 
         const App = () => {
-            const [activeTab, setActiveTab] = useState('rules'); // 'rules' or 'price'
-
-            // 價目表相關狀態
+            const [activeTab, setActiveTab] = useState('rules');
             const [style, setStyle] = useState(null);
             const [removal, setRemoval] = useState(null);
             const [extensionCount, setExtensionCount] = useState(0);
@@ -73,7 +65,6 @@
             const [showSummary, setShowSummary] = useState(false);
             const [copied, setCopied] = useState(false);
 
-            // 價格設定
             const prices = {
                 styles: [
                     { id: 'basic', name: '單色', price: 900 },
@@ -88,7 +79,6 @@
                 ]
             };
 
-            // 時段邏輯
             const availableTimes = useMemo(() => {
                 if (!booking.date) return [];
                 const day = new Date(booking.date).getDay();
@@ -105,37 +95,85 @@
             const discountTotal = useMemo(() => (discounts.customerBirthday ? 100 : 0), [discounts]);
             const totalPrice = useMemo(() => Math.max(0, (selectedStyleObj?.price || 0) + (selectedRemovalObj?.price || 0) + (extensionCount * 150) + (repairCount * 100) + addOnTotal - discountTotal), [selectedStyleObj, selectedRemovalObj, extensionCount, repairCount, addOnTotal, discountTotal]);
 
-            const copyToClipboard = () => {
-                const text = `𝙼𝙸𝙻𝙺𝚃𝙴𝙰.𝙻𝙰𝙳𝚈_ 𝙽𝙰𝙸𝙻 預約明細\n━━━━━━━━━━━━━\n👤 姓名：${booking.name || '未填'}\n📅 日期：${booking.date}\n⏰ 時段：${booking.time}\n━━━━━━━━━━━━━\n` +
+            const copyToClipboard = async () => {
+                const text = `𝙼𝙸𝙻𝙺𝚃𝙴𝙰.𝙻𝙰𝙳𝚈_ 𝙽𝙰𝙸𝙻 預約明細\n━━━━━━━━━━━━━━━━\n👤 姓名：${booking.name || '未填'}\n📅 日期：${booking.date}\n⏰ 時段：${booking.time}\n━━━━━━━━━━━━━━━━\n` +
                     (selectedStyleObj ? `🍂 款式：${selectedStyleObj.name} $${selectedStyleObj.price}\n` : "") +
                     (selectedRemovalObj ? `🧼 卸甲：${selectedRemovalObj.name} $${selectedRemovalObj.price}\n` : "") +
                     (extensionCount > 0 ? `💅 延甲：${extensionCount}指 $${extensionCount * 150}\n` : "") +
                     (repairCount > 0 ? `🩹 補甲：${repairCount}指 $${repairCount * 100}\n` : "") +
-                    `✨ 加購：$${addOnTotal}\n🎂 壽星：${discounts.customerBirthday ? '是' : '否'}\n━━━━━━━━━━━━━\n✨ 預計總計：NT$ ${totalPrice}\n\n回傳 LINE 完成預約\n𝙼𝙸𝙻𝙺𝚃𝙴𝙰.𝙻𝙰𝙳𝚈_ 𝙽𝙰𝙸𝙻`;
-                const textArea = document.createElement("textarea");
-                textArea.value = text; document.body.appendChild(textArea); textArea.select();
-                document.execCommand('copy'); document.body.removeChild(textArea);
-                setCopied(true); setTimeout(() => setCopied(false), 2000);
+                    `✨ 加購：$${addOnTotal}\n🎂 壽星：${discounts.customerBirthday ? '是' : '否'}\n━━━━━━━━━━━━━━━━\n✨ 預計總計：NT$ ${totalPrice}\n\n回傳 LINE 完成預約\n𝙼𝙸𝙻𝙺𝚃𝙴𝙰.𝙻𝙰𝙳𝚈_ 𝙽𝙰𝙸𝙻`;
+
+                // 判斷瀏覽器是否支援 Web Share API
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: 'MILKTEA.LADY 預約明細',
+                            text: text
+                        });
+                        // 分享成功
+                    } catch (err) {
+                        // 使用者取消分享或發生錯誤時，不進行任何操作或降級處理
+                        console.log('取消分享或不支援', err);
+                    }
+                } else {
+                    // 降級處理：不支援分享 API 時，使用原本的複製功能
+                    const textArea = document.createElement("textarea");
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                }
             };
 
             return (
                 <div className="min-h-screen flex flex-col items-center p-4 bg-[#E5DCD3] pb-12">
                     <div className="w-full max-w-md bg-[#F2EDE7] rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/40">
-                        {/* Header */}
-                        <div className="bg-[#8E735B] pt-10 pb-6 text-center text-white">
+                        {/* Header Section */}
+                        <div className="bg-[#8E735B] pt-12 text-center text-white">
                             <h1 className="text-[19px] font-serif-custom tracking-[0.22em] mb-2 uppercase text-[#EBD9D9]">MILKTEA.LADY_ NAIL</h1>
-                            <p className="text-[10px] tracking-[0.4em] opacity-60 italic uppercase mb-6">Service & Pricing</p>
+                            <p className="text-[10px] tracking-[0.4em] opacity-60 italic uppercase mb-8">Studio Menu</p>
 
-                            {/* Tabs Switcher */}
-                            <div className="flex px-8 gap-8 justify-center text-[12px] tracking-widest font-bold">
-                                <button onClick={() => setActiveTab('rules')} className={`pb-2 transition-all ${activeTab === 'rules' ? 'tab-active' : 'opacity-40'}`}>預約須知</button>
-                                <button onClick={() => setActiveTab('price')} className={`pb-2 transition-all ${activeTab === 'price' ? 'tab-active' : 'opacity-40'}`}>價目預約</button>
+                            {/* Tab 切換：選中淺色/沒選深色 */}
+                            <div className="flex px-10 gap-2">
+                                <button
+                                    onClick={() => setActiveTab('rules')}
+                                    className={`flex-1 py-3 rounded-t-2xl text-[12px] tracking-widest font-bold transition-all duration-300 
+                                    ${activeTab === 'rules'
+                                            ? 'bg-[#F2EDE7] text-[#8E735B]'
+                                            : 'bg-[#6B5A4D] text-[#E5DCD3] opacity-80'}`}
+                                >
+                                    預約須知
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('price')}
+                                    className={`flex-1 py-3 rounded-t-2xl text-[12px] tracking-widest font-bold transition-all duration-300 
+                                    ${activeTab === 'price'
+                                            ? 'bg-[#F2EDE7] text-[#8E735B]'
+                                            : 'bg-[#6B5A4D] text-[#E5DCD3] opacity-80'}`}
+                                >
+                                    價目預約
+                                </button>
                             </div>
                         </div>
 
                         {/* 第一頁：預約須知 */}
                         {activeTab === 'rules' && (
-                            <div className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="p-8 space-y-8 animate-in fade-in duration-500">
+                                <section className="space-y-4">
+                                    <h2 className="text-[14px] font-bold text-[#8E735B] flex items-center gap-2 border-b border-[#D4A5A5]/30 pb-2 italic">
+                                        <LucideIcon name="check-square" /> 預約流程
+                                    </h2>
+                                    <div className="grid grid-cols-4 gap-2 text-center text-[10px] font-bold text-[#6B5A4D]">
+                                        <div className="space-y-1"><div className="bg-white/60 p-2 rounded-lg italic">1.閱讀</div><span>看完須知</span></div>
+                                        <div className="space-y-1"><div className="bg-white/60 p-2 rounded-lg italic">2.計價</div><span>估算總額</span></div>
+                                        <div className="space-y-1"><div className="bg-white/60 p-2 rounded-lg italic">3.加賴</div><span>回傳明細</span></div>
+                                        <div className="space-y-1"><div className="bg-white/60 p-2 rounded-lg italic">4.付訂</div><span>預約成功</span></div>
+                                    </div>
+                                </section>
+
                                 <section className="space-y-4">
                                     <h2 className="text-[14px] font-bold text-[#8E735B] flex items-center gap-2 border-b border-[#D4A5A5]/30 pb-2">
                                         <LucideIcon name="info" /> 訂金政策 Policy
@@ -194,10 +232,9 @@
                             </div>
                         )}
 
-                        {/* 第二頁：價目預約 (保留原本邏輯) */}
+                        {/* 第二頁：價目預約 (原始舊項目完全保留) */}
                         {activeTab === 'price' && (
                             <div className="p-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                {/* 款式選擇 */}
                                 <section>
                                     <h2 className="text-[12px] font-bold tracking-widest text-[#6B5A4D] mb-4 flex items-center justify-between border-b border-[#D4A5A5]/30 pb-2">
                                         I. 款式選擇 STYLE <LucideIcon name="heart" className="text-[#A66E6E]" />
@@ -212,7 +249,6 @@
                                     </div>
                                 </section>
 
-                                {/* 卸甲服務 */}
                                 <section>
                                     <h2 className="text-[12px] font-bold tracking-widest text-[#6B5A4D] mb-4 flex items-center justify-between border-b border-[#D4A5A5]/30 pb-2">
                                         II. 卸甲服務 REMOVAL <LucideIcon name="eraser" className="text-[#A66E6E]" />
@@ -227,7 +263,7 @@
                                     </div>
                                 </section>
 
-                                {/* 加購細項 (舊有內容) */}
+                                {/* 加購細項 (原始程式碼保留) */}
                                 <section className="bg-[#EAE2D9]/40 p-5 rounded-[2rem] border border-[#D4A5A5]/10 space-y-4">
                                     <h2 className="text-[11px] font-bold text-[#8C4A4A] flex justify-between items-center px-1">
                                         ADD-ONS 加購細項 <LucideIcon name="sparkles" size={14} />
@@ -252,20 +288,11 @@
                                     ))}
                                 </section>
 
-                                {/* 延甲與補甲 (新要求) */}
                                 <section>
                                     <h2 className="text-[12px] font-bold tracking-widest text-[#6B5A4D] mb-4 flex items-center justify-between border-b border-[#D4A5A5]/30 pb-2">
                                         IV. 延甲與補甲 SERVICE <LucideIcon name="shield-check" className="text-[#A66E6E]" />
                                     </h2>
                                     <div className="space-y-3">
-                                        <div className="bg-[#EAE2D9]/80 px-6 py-3 rounded-2xl flex items-center justify-between border border-[#D4A5A5]/10">
-                                            <span className="text-[11px] font-bold">延甲 <span className="text-[#A66E6E] ml-1">$150/指</span></span>
-                                            <div className="flex items-center gap-4">
-                                                <button onClick={() => setExtensionCount(Math.max(0, extensionCount - 1))} className="text-[#A66E6E] font-bold p-1">-</button>
-                                                <span className="text-sm font-black w-4 text-center">{extensionCount}</span>
-                                                <button onClick={() => setExtensionCount(Math.min(10, extensionCount + 1))} className="text-[#A66E6E] font-bold p-1">+</button>
-                                            </div>
-                                        </div>
                                         <div className="bg-[#EAE2D9]/80 px-6 py-3 rounded-2xl flex items-center justify-between border border-[#D4A5A5]/10">
                                             <span className="text-[11px] font-bold">補甲 <span className="text-[#A66E6E] ml-1">$100/指</span></span>
                                             <div className="flex items-center gap-4">
@@ -274,24 +301,61 @@
                                                 <button onClick={() => setRepairCount(Math.min(10, repairCount + 1))} className="text-[#A66E6E] font-bold p-1">+</button>
                                             </div>
                                         </div>
+                                        <div className="bg-[#EAE2D9]/80 px-6 py-3 rounded-2xl flex items-center justify-between border border-[#D4A5A5]/10">
+                                            <span className="text-[11px] font-bold">延甲 <span className="text-[#A66E6E] ml-1">$150/指</span></span>
+                                            <div className="flex items-center gap-4">
+                                                <button onClick={() => setExtensionCount(Math.max(0, extensionCount - 1))} className="text-[#A66E6E] font-bold p-1">-</button>
+                                                <span className="text-sm font-black w-4 text-center">{extensionCount}</span>
+                                                <button onClick={() => setExtensionCount(Math.min(10, extensionCount + 1))} className="text-[#A66E6E] font-bold p-1">+</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </section>
 
-                                {/* 預約資訊 */}
                                 <section className="bg-white/40 p-6 rounded-[2rem] border border-[#A66E6E]/20 space-y-4">
                                     <h2 className="text-[12px] font-bold tracking-widest text-[#6B5A4D] mb-2 flex items-center justify-between border-b border-[#D4A5A5]/30 pb-2">
                                         預約時段 BOOKING <LucideIcon name="calendar" className="text-[#A66E6E]" />
                                     </h2>
                                     <div className="space-y-3">
-                                        <input type="text" placeholder="顧客姓名" value={booking.name} onChange={e => setBooking({ ...booking, name: e.target.value })} className="w-full bg-[#EAE2D9]/50 border-none rounded-xl px-4 py-3 text-sm outline-none shadow-inner" />
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <input type="date" value={booking.date} onChange={e => setBooking({ ...booking, date: e.target.value, time: '' })} className="w-full bg-[#EAE2D9]/50 border-none rounded-xl px-4 py-2 text-[12px] outline-none" />
-                                            <select disabled={!booking.date || availableTimes[0] === "CLOSED"} value={booking.time} onChange={e => setBooking({ ...booking, time: e.target.value })} className="w-full bg-[#EAE2D9]/50 border-none rounded-xl px-4 py-2 text-sm outline-none appearance-none">
-                                                {!booking.date ? <option>先選日期</option> : availableTimes[0] === "CLOSED" ? <option>週五不開放</option> : <><option value="">時段</option>{availableTimes.map(t => <option key={t} value={t}>{t}</option>)}</>}
-                                            </select>
+                                        {/* 姓名輸入框 */}
+                                        <input
+                                            type="text"
+                                            placeholder="顧客姓名"
+                                            value={booking.name}
+                                            onChange={e => setBooking({ ...booking, name: e.target.value })}
+                                            className="w-full h-11 bg-[#EAE2D9]/50 border-none rounded-xl px-4 py-3 text-sm outline-none shadow-inner appearance-none"
+                                        />
+
+                                        {/* 日期與時段 - 修正跑版關鍵區塊 */}
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <input
+                                                type="date"
+                                                value={booking.date}
+                                                onChange={e => setBooking({ ...booking, date: e.target.value, time: '' })}
+                                                className="w-full h-11 bg-[#EAE2D9]/50 border-none rounded-xl px-3 text-[12px] outline-none appearance-none"
+                                            />
+                                            <div className="relative">
+                                                <select
+                                                    disabled={!booking.date || availableTimes[0] === "CLOSED"}
+                                                    value={booking.time}
+                                                    onChange={e => setBooking({ ...booking, time: e.target.value })}
+                                                    className="w-full h-11 bg-[#EAE2D9]/50 border-none rounded-xl px-3 text-sm outline-none appearance-none pr-8"
+                                                >
+                                                    {!booking.date ? <option>先選日期</option> : availableTimes[0] === "CLOSED" ? <option>週五不開放</option> : <><option value="">時段</option>{availableTimes.map(t => <option key={t} value={t}>{t}</option>)}</>}
+                                                </select>
+                                                {/* 自定義下拉箭頭，確保手機端美觀 */}
+                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
+                                                    <LucideIcon name="chevron-down" size={14} />
+                                                </div>
+                                            </div>
                                         </div>
-                                        <button onClick={() => setDiscounts(p => ({ ...p, customerBirthday: !p.customerBirthday }))} className={`w-full px-4 py-2 rounded-xl flex items-center justify-between ${discounts.customerBirthday ? 'bg-[#A66E6E] text-white' : 'bg-[#FAF9F7] text-[#6B5A4D]'}`}>
-                                            <span className="text-[10px] font-bold">當月壽星 (折$100)</span>
+
+                                        {/* 壽星按鈕 */}
+                                        <button
+                                            onClick={() => setDiscounts(p => ({ ...p, customerBirthday: !p.customerBirthday }))}
+                                            className={`w-full h-10 px-4 rounded-xl flex items-center justify-between transition-colors ${discounts.customerBirthday ? 'bg-[#A66E6E] text-white' : 'bg-[#FAF9F7] text-[#6B5A4D]'}`}
+                                        >
+                                            <span className="text-[10px] font-bold uppercase">當月壽星 (折$100)</span>
                                             {discounts.customerBirthday && <LucideIcon name="check" size={14} />}
                                         </button>
                                     </div>
