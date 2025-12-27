@@ -330,7 +330,7 @@
                                         <div className="grid grid-cols-2 gap-2">
                                             <input
                                                 type="date"
-                                                value={booking.date}
+                                                value={!booking.date ? '年/月/日' : booking.date}
                                                 onChange={e => setBooking({ ...booking, date: e.target.value, time: '' })}
                                                 className="w-full h-11 bg-[#EAE2D9]/50 border-none rounded-xl px-3 text-[12px] outline-none appearance-none"
                                             />
@@ -341,7 +341,7 @@
                                                     onChange={e => setBooking({ ...booking, time: e.target.value })}
                                                     className="w-full h-11 bg-[#EAE2D9]/50 border-none rounded-xl px-3 text-sm outline-none appearance-none pr-8"
                                                 >
-                                                    {!booking.date ? <option>先選日期</option> : availableTimes[0] === "CLOSED" ? <option>週五不開放</option> : <><option value="">時段</option>{availableTimes.map(t => <option key={t} value={t}>{t}</option>)}</>}
+                                                    {!booking.date ? <option>時段</option> : availableTimes[0] === "CLOSED" ? <option>週五不開放</option> : <><option value="">時段</option>{availableTimes.map(t => <option key={t} value={t}>{t}</option>)}</>}
                                                 </select>
                                                 {/* 自定義下拉箭頭，確保手機端美觀 */}
                                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
