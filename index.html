@@ -48,9 +48,16 @@
     <script type="text/babel">
         const { useState, useMemo, useEffect } = React;
 
+        // 穩定版圖標元件：加入 key 並防止外部腳本干擾 React 節點
         const LucideIcon = ({ name, size = 16, className = "" }) => {
-            useEffect(() => { if (window.lucide) { window.lucide.createIcons(); } }, [name]);
-            return <i data-lucide={name} style={{ width: size, height: size, display: 'inline-block' }} className={className}></i>;
+            useEffect(() => {
+                if (window.lucide) { window.lucide.createIcons(); }
+            }, [name]);
+            return (
+                <span key={name} className={`inline-flex items-center justify-center ${className}`}>
+                    <i data-lucide={name} style={{ width: size, height: size }}></i>
+                </span>
+            );
         };
 
         const App = () => {
@@ -64,6 +71,7 @@
             const [booking, setBooking] = useState({ name: '', date: '', time: '' });
             const [showSummary, setShowSummary] = useState(false);
             const [copied, setCopied] = useState(false);
+            const [agreed, setAgreed] = useState(false);
 
             const prices = {
                 styles: [
@@ -95,13 +103,29 @@
             const discountTotal = useMemo(() => (discounts.customerBirthday ? 100 : 0), [discounts]);
             const totalPrice = useMemo(() => Math.max(0, (selectedStyleObj?.price || 0) + (selectedRemovalObj?.price || 0) + (extensionCount * 150) + (repairCount * 100) + addOnTotal - discountTotal), [selectedStyleObj, selectedRemovalObj, extensionCount, repairCount, addOnTotal, discountTotal]);
 
-            const copyToClipboard = async () => {
-                const text = `𝙼𝙸𝙻𝙺𝚃𝙴𝙰.𝙻𝙰𝙳𝚈_ 𝙽𝙰𝙸𝙻 預約明細\n━━━━━━━━━━━━━━━━\n👤 姓名：${booking.name || '未填'}\n📅 日期：${booking.date}\n⏰ 時段：${booking.time}\n━━━━━━━━━━━━━━━━\n` +
+            const copyText = () => {
+                const addOnDisplay = addOnTotal > 0 ? `${addOnTotal}` : "0";
+
+                return `𝙼𝙸𝙻𝙺𝚃𝙴𝙰.𝙻𝙰𝙳𝚈_ 𝙽𝙰𝙸𝙻 預約明細\n` +
+                    `━━━━━━━━━━━━━━━━\n` +
+                    `👤 姓名：${booking.name || '未填'}\n` +
+                    `📅 日期：${booking.date || '未填'}\n` +
+                    `⏰ 時段：${booking.time || '未填'}\n` +
+                    `━━━━━━━━━━━━━━━━\n` +
                     (selectedStyleObj ? `🍂 款式：${selectedStyleObj.name} $${selectedStyleObj.price}\n` : "") +
                     (selectedRemovalObj ? `🧼 卸甲：${selectedRemovalObj.name} $${selectedRemovalObj.price}\n` : "") +
                     (extensionCount > 0 ? `💅 延甲：${extensionCount}指 $${extensionCount * 150}\n` : "") +
                     (repairCount > 0 ? `🩹 補甲：${repairCount}指 $${repairCount * 100}\n` : "") +
-                    `✨ 加購：$${addOnTotal}\n🎂 壽星：${discounts.customerBirthday ? '是' : '否'}\n━━━━━━━━━━━━━━━━\n✨ 預計總計：NT$ ${totalPrice}\n\n回傳 LINE 完成預約\n𝙼𝙸𝙻𝙺𝚃𝙴𝙰.𝙻𝙰𝙳𝚈_ 𝙽𝙰𝙸𝙻`;
+                    `✨ 加購：$${addOnDisplay}\n` +
+                    `🎂 壽星：${discounts.customerBirthday ? '是' : '否'}\n` +
+                    `━━━━━━━━━━━━━━━━\n` +
+                    `✨ 預計總計：NT$ ${totalPrice}\n\n` +
+                    `回傳 LINE 完成預約\n` +
+                    `𝙼𝙸𝙻𝙺𝚃𝙴𝙰.𝙻𝙰𝙳𝚈_ 𝙽𝙰𝙸𝙻`;
+            }
+
+            const copyToClipboard = async () => {
+                const text = copyText();
 
                 // 判斷瀏覽器是否支援 Web Share API
                 if (navigator.share) {
@@ -368,10 +392,23 @@
                                     </div>
                                 </section>
 
+                                {/* 確認勾選區塊 */}
+                                <div
+                                    onClick={() => setAgreed(!agreed)}
+                                    className="flex items-center justify-center gap-3 cursor-pointer group py-2"
+                                >
+                                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${agreed ? 'bg-[#8E735B] border-[#8E735B]' : 'border-[#D4A5A5] bg-white'}`}>
+                                        {agreed && <LucideIcon name="check" size={14} className="text-white" />}
+                                    </div>
+                                    <span className={`text-[11px] font-bold tracking-wider ${agreed ? 'text-[#8E735B]' : 'text-[#A66E6E]'}`}>
+                                        我已確認並同意「預約須知」內容
+                                    </span>
+                                </div>
+
                                 {/* 總計按鈕 */}
                                 <div className="pb-4">
-                                    <button onClick={() => setShowSummary(true)} disabled={totalPrice === 0 || !booking.time || booking.time === "CLOSED"}
-                                        className={`w-full h-20 rounded-[1.8rem] flex items-center justify-between px-8 transition-all ${totalPrice === 0 || !booking.time || booking.time === "CLOSED" ? 'bg-[#D3C7BC] opacity-60' : 'bg-[#6B5A4D] text-white shadow-2xl'}`}>
+                                    <button onClick={() => setShowSummary(true)} disabled={!agreed || totalPrice === 0 || !booking.time || booking.time === "CLOSED"}
+                                        className={`w-full h-20 rounded-[1.8rem] flex items-center justify-between px-8 transition-all ${!agreed || totalPrice === 0 || !booking.time || booking.time === "CLOSED" ? 'bg-[#D3C7BC] opacity-60' : 'bg-[#6B5A4D] text-white shadow-2xl'}`}>
                                         <div className="text-left">
                                             <p className="text-[9px] opacity-60 font-bold uppercase tracking-widest">Total Price</p>
                                             <p className="text-2xl font-bold">NT$ {totalPrice.toLocaleString()}</p>
@@ -391,12 +428,7 @@
                                 <button onClick={() => setShowSummary(false)} className="absolute top-6 right-6 text-[#A66E6E]"><LucideIcon name="x" size={24} /></button>
                                 <LucideIcon name="sparkles" className="mx-auto mb-2 text-[#A66E6E]" size={32} />
                                 <div className="bg-white/60 p-5 rounded-3xl text-left text-[11px] mb-6 whitespace-pre-wrap leading-relaxed shadow-inner border border-[#D4A5A5]/10">
-                                    👤 姓名：{booking.name || '未填'}{"\n"}📅 日期：{booking.date}{"\n"}⏰ 時段：{booking.time}{"\n"}━━━━━━━━━━━━━{"\n"}
-                                    🍂 款式：{selectedStyleObj?.name}{"\n"}🧼 卸甲：{selectedRemovalObj?.name || '無'}{"\n"}
-                                    {extensionCount > 0 && `💅 延甲：${extensionCount}指 $${extensionCount * 150}\n`}
-                                    {repairCount > 0 && `🩹 補甲：${repairCount}指 $${repairCount * 100}\n`}
-                                    ✨ 加購：$${addOnTotal}{"\n"}🎂 壽星：${discounts.customerBirthday ? '是' : '否'}{"\n"}━━━━━━━━━━━━━{"\n"}
-                                    ✨ 預計總計：NT$ {totalPrice}
+                                    {copyText()}
                                 </div>
                                 <button onClick={copyToClipboard} className={`w-full py-4 rounded-full font-bold text-[11px] transition-all flex items-center justify-center gap-2 shadow-lg ${copied ? 'bg-green-700 text-white' : 'bg-[#A66E6E] text-white'}`}>
                                     {copied ? <LucideIcon name="check" size={16} /> : <LucideIcon name="copy" size={16} />}
