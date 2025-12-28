@@ -107,18 +107,18 @@
                 const addOnDisplay = addOnTotal > 0 ? `${addOnTotal}` : "0";
 
                 return `𝙼𝙸𝙻𝙺𝚃𝙴𝙰.𝙻𝙰𝙳𝚈_ 𝙽𝙰𝙸𝙻 預約明細\n` +
-                    `━━━━━━━━━━━━━━━━\n` +
+                    `━━━━━━━━━━━━━\n` +
                     `👤 姓名：${booking.name || '未填'}\n` +
                     `📅 日期：${booking.date || '未填'}\n` +
                     `⏰ 時段：${booking.time || '未填'}\n` +
-                    `━━━━━━━━━━━━━━━━\n` +
+                    `━━━━━━━━━━━━━\n` +
                     (selectedStyleObj ? `🍂 款式：${selectedStyleObj.name} $${selectedStyleObj.price}\n` : "") +
                     (selectedRemovalObj ? `🧼 卸甲：${selectedRemovalObj.name} $${selectedRemovalObj.price}\n` : "") +
                     (extensionCount > 0 ? `💅 延甲：${extensionCount}指 $${extensionCount * 150}\n` : "") +
                     (repairCount > 0 ? `🩹 補甲：${repairCount}指 $${repairCount * 100}\n` : "") +
                     `✨ 加購：$${addOnDisplay}\n` +
                     `🎂 壽星：${discounts.customerBirthday ? '是' : '否'}\n` +
-                    `━━━━━━━━━━━━━━━━\n` +
+                    `━━━━━━━━━━━━━\n` +
                     `✨ 預計總計：NT$ ${totalPrice}\n\n` +
                     `回傳 LINE 完成預約\n` +
                     `𝙼𝙸𝙻𝙺𝚃𝙴𝙰.𝙻𝙰𝙳𝚈_ 𝙽𝙰𝙸𝙻`;
