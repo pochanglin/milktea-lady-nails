@@ -355,7 +355,13 @@
                                                     type="date"
                                                     min={new Date().toLocaleDateString('en-CA')}
                                                     value={booking.date}
-                                                    onChange={e => setBooking({ ...booking, date: e.target.value, time: '' })}
+                                                    onChange={e => {
+                                                        const selected = e.target.value;
+                                                        const today = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split("T")[0];
+                                                        // Double safety: if they pick a past date, reset to today
+                                                        const finalDate = selected < today ? today : selected;
+                                                        setBooking({ ...booking, date: finalDate, time: '' });
+                                                    }}
                                                     className={`w-full h-11 bg-[#EAE2D9]/50 border-none rounded-xl px-3 text-sm outline-none cursor-pointer appearance-none flex items-center
       /* 1. Hide the browser's default calendar icon */
       [&::-webkit-calendar-picker-indicator]:opacity-0 
