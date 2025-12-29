@@ -353,7 +353,7 @@
                                             <div className="relative">
                                                 <input
                                                     type="date"
-                                                    min={new Date().toISOString().split('T')[0]}
+                                                    min={new Date().toLocaleDateString('en-CA')}
                                                     value={booking.date}
                                                     onChange={e => setBooking({ ...booking, date: e.target.value, time: '' })}
                                                     className={`w-full h-11 bg-[#EAE2D9]/50 border-none rounded-xl px-3 text-sm outline-none cursor-pointer appearance-none flex items-center
