@@ -350,7 +350,7 @@
 
                                         {/* 日期與時段 */}
                                         <div className="grid grid-cols-2 gap-2">
-                                            <div className="relative">
+                                            <div className="relative w-full">
                                                 <input
                                                     type="date"
                                                     min={new Date().toLocaleDateString('en-CA')}
@@ -358,27 +358,39 @@
                                                     onChange={e => {
                                                         const selected = e.target.value;
                                                         const today = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split("T")[0];
-                                                        // Double safety: if they pick a past date, reset to today
                                                         const finalDate = selected < today ? today : selected;
                                                         setBooking({ ...booking, date: finalDate, time: '' });
                                                     }}
-                                                    className={`w-full h-11 bg-[#EAE2D9]/50 border-none rounded-xl px-3 text-sm outline-none cursor-pointer appearance-none flex items-center
-      /* 1. Hide the browser's default calendar icon */
-      [&::-webkit-calendar-picker-indicator]:opacity-0 
+                                                    className={`
+      w-full h-11 px-3 pr-10 rounded-xl text-sm outline-none cursor-pointer
+      bg-[#EAE2D9]/50 border-none transition-colors
+      flex items-center
+      
+      /* 1. Hide the browser's default calendar icon but keep it clickable */
       [&::-webkit-calendar-picker-indicator]:absolute 
+      [&::-webkit-calendar-picker-indicator]:left-0
+      [&::-webkit-calendar-picker-indicator]:top-0
       [&::-webkit-calendar-picker-indicator]:w-full 
       [&::-webkit-calendar-picker-indicator]:h-full
-      
-      /* 2. Hide the default 'yyyy/mm/dd' text while input is empty */
-      ${!booking.date ? "text-transparent" : "text-black"}
+      [&::-webkit-calendar-picker-indicator]:opacity-0
+      [&::-webkit-calendar-picker-indicator]:cursor-pointer
 
-      /* 3. Show your custom placeholder text */
+      /* 2. Handle text color and placeholder */
+      ${!booking.date ? "text-transparent" : "text-black"}
       ${!booking.date ? "before:content-['選擇日期'] before:text-gray-400 before:absolute" : ""}
+      
+      /* 3. Remove default padding/margin in some browsers */
+      [&::-webkit-datetime-edit]:p-0
+      [&::-webkit-datetime-edit-fields-wrapper]:p-0
     `}
                                                 />
-                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
-                                                    <LucideIcon name="calendar" size={14} />
-                                                </div>
+
+                                                {/* The Custom Icon - Positioned specifically to not overlap text */}
+                                                {!booking.date && (
+                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                                                        <LucideIcon name="calendar" size={16} />
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="relative">
                                                 <select
