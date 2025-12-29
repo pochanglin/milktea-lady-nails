@@ -348,21 +348,32 @@
                                             className="w-full h-11 bg-[#EAE2D9]/50 border-none rounded-xl px-4 py-3 text-sm outline-none shadow-inner appearance-none"
                                         />
 
-                                        {/* 日期與時段 - 修正跑版關鍵區塊 */}
+                                        {/* 日期與時段 */}
                                         <div className="grid grid-cols-2 gap-2">
-                                            <input
-                                                type="date"
-                                                value={booking.date}
-                                                onChange={e => setBooking({ ...booking, date: e.target.value, time: '' })}
-                                                className={`w-full h-11 bg-[#EAE2D9]/50 border-none rounded-xl px-3 text-[12px] outline-none appearance-none flex items-center
-            ${!booking.date ? "before:content-['選擇日期'] before:text-gray-400" : ""}`}
-                                            />
-                                            {/* 為了美觀，可以在右側加一個小月曆圖示，這也能提示 user 這是點擊選日期的 */}
-                                            {!booking.date && (
-                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+                                            <div className="relative">
+                                                <input
+                                                    type="date"
+                                                    min={new Date().toISOString().split('T')[0]}
+                                                    value={booking.date}
+                                                    onChange={e => setBooking({ ...booking, date: e.target.value, time: '' })}
+                                                    className={`w-full h-11 bg-[#EAE2D9]/50 border-none rounded-xl px-3 text-sm outline-none cursor-pointer appearance-none flex items-center
+      /* 1. Hide the browser's default calendar icon */
+      [&::-webkit-calendar-picker-indicator]:opacity-0 
+      [&::-webkit-calendar-picker-indicator]:absolute 
+      [&::-webkit-calendar-picker-indicator]:w-full 
+      [&::-webkit-calendar-picker-indicator]:h-full
+      
+      /* 2. Hide the default 'yyyy/mm/dd' text while input is empty */
+      ${!booking.date ? "text-transparent" : "text-black"}
+
+      /* 3. Show your custom placeholder text */
+      ${!booking.date ? "before:content-['選擇日期'] before:text-gray-400 before:absolute" : ""}
+    `}
+                                                />
+                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
                                                     <LucideIcon name="calendar" size={14} />
                                                 </div>
-                                            )}
+                                            </div>
                                             <div className="relative">
                                                 <select
                                                     disabled={!booking.date || availableTimes[0] === "CLOSED"}
