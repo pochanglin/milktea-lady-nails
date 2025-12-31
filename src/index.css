@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    background-color: #E5DCD3;
+    font-family: sans-serif;
+    color: #4A3B32;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+.font-serif-custom {
+    font-family: 'Noto Serif TC', serif;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+details>summary {
+    list-style: none;
+}
+
+details>summary::-webkit-details-marker {
+    display: none;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.5);
+}
